@@ -113,14 +113,14 @@ const LoginForm: React.FC = () => {
 
             <form onSubmit={handleLogin}>
             <div className="mb-6">
- <p className="mb-1 ">Username</p>
+ <p className="mb-1 ">User ID</p>
   <label className="flex items-center  border bg-white    px-4 py-3"> 
     {/* <FaEnvelope className="text-gray-400 mr-3" /> */}
     <input
       type="text"
       value={emailOrAccount}
       onChange={(e) => setEmailOrAccount(e.target.value)}
-      placeholder="Enter your username"
+      placeholder="Enter your User ID"
       required
       className="flex-grow bg-transparent outline-none text-[16px]  "
     />
@@ -132,7 +132,7 @@ const LoginForm: React.FC = () => {
                   <p className="text-purple-500 ">Forgot Password?</p> */}
                 </div>
                 
-                 <p className="mb-1 ">Username</p>
+                 <p className="mb-1 ">Password</p>
                 <label className="flex items-center  border bg-white px-4 py-3">
                   {/* <FaLock className="text-gray-400 mr-3" /> */}
                   <input
