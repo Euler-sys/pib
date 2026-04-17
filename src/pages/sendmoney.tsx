@@ -253,18 +253,49 @@ const SendMoney = () => {
       
             {/* Error Modal */}
             {error && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                <div className="bg-white p-6 rounded-lg shadow-lg text-center">
-                  <h2 className="text-lg font-semibold text-red-600">Transaction Failed</h2>
-                  <p className="text-gray-600 mt-2">An error occurred. Please contact support.</p>
-                  <button
-                    onClick={() => setError(false)}
-                    className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center px-4">
+  <div className="bg-white w-full max-w-md p-6 rounded-2xl shadow-xl text-center">
+    
+    {/* Title */}
+    <h2 className="text-xl font-semibold text-red-600">
+      Transaction Failed
+    </h2>
+
+    {/* Message */}
+    <p className="text-gray-600 mt-3">
+      We were unable to process your transaction. This may be due to missing or invalid details.
+    </p>
+
+    {/* Documentation request */}
+    <p className="text-gray-500 text-sm mt-2">
+      Please provide the required documentation or reach out to support for assistance.
+    </p>
+
+    {/* Buttons */}
+    <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
+      
+      {/* Upload / Documentation button */}
+
+
+      {/* Contact Support */}
+      <a
+        href="mailto:premiuminv@financier.com?subject=Transaction%20Issue&body=Hello%2C%20I%20encountered%20a%20transaction%20failure.%20Please%20assist."
+        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition text-center"
+      >
+        Contact Support
+      </a>
+    </div>
+
+    {/* Close */}
+    <button
+      onClick={() => setError(false)}
+      className="mt-4 text-sm text-gray-500 hover:text-gray-700 underline"
+    >
+      Close
+    </button>
+
+  </div>
+</div>
             )}
           </div>
 
