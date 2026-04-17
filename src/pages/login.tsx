@@ -3,10 +3,11 @@ import {  useNavigate } from "react-router-dom";
 import {  FaEye, FaEyeSlash,  FaSadCry } from "react-icons/fa";
 import { getUsers } from "../backend/api"; // Import getUsers function from api.ts
 
-import logo from "../assets/logo.png";
-import lom from "../assets/zelle.webp";
-import lol from '../assets/logo.png'
-// import bgimg from "../assets/bg.jpg";
+import logo from "../assets/logo.webp";
+
+import lol from '../assets/logo.webp'
+import bgimg from "../assets/bg.jpg";
+import Footer from "../Home/footer";
 
 const LoginForm: React.FC = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -78,16 +79,17 @@ const LoginForm: React.FC = () => {
   
   
   return (
+    <>
     <div
       className="flex justify-center items-center min-h-screen relative bg-cover bg-center"
-      // style={{ backgroundImage: `url(${bgimg})` }}
+      style={{ backgroundImage: `url(${bgimg})` }}
     >
       {/* Dark overlay */}
-      {/* <div className="absolute inset-0 bg-black bg-opacity-80 z-0"></div> */}
+      <div className="absolute inset-0 bg-black bg-opacity-70 z-0"></div>
 
       {isLoading ? (
-       <div className="flex flex-col items-center justify-center min-h-screen z-10 ">
-  <div className="bg-white   p-6 w-80 flex flex-col items-center">
+       <div className="flexflex-col items-center justify-center min-h-screen z-10 ">
+  <div className="  p-6 w-80 flex flex-col items-center">
     <img
       src={lol} // replace with your actual image path
       alt="Loading illustration"
@@ -102,24 +104,25 @@ const LoginForm: React.FC = () => {
 </div>
 
       ) : (
-        <div className="flex z-10 w-full  justify-center items-center min-h-screen p-4">
-          <div className="  rounded p-8 w-full max-w-md">
-            <img src={logo} alt=""  width={500} className="m-auto mb-3"/>
+        <>
+        <div className="flex z-10 flex-col   justify-center items-center min-h-screen p-4">
+     <div className="rounded-[12px] p-8 w-full max-w-md w-[90%] bg-white/80  shadow-lg">
+            <img src={logo} alt=""  width={200} className="m-auto mb-3"/>
             
             
 
             <form onSubmit={handleLogin}>
             <div className="mb-6">
- 
-  <label className="flex items-center  border-b    px-4 py-3">
+ <p className="mb-1 ">Username</p>
+  <label className="flex items-center  border bg-white    px-4 py-3"> 
     {/* <FaEnvelope className="text-gray-400 mr-3" /> */}
     <input
       type="text"
       value={emailOrAccount}
       onChange={(e) => setEmailOrAccount(e.target.value)}
-      placeholder="User ID"
+      placeholder="Enter your username"
       required
-      className="flex-grow bg-transparent outline-none text-sm placeholder-blue-700 placeholder:text-[18px] placeholder:font-semibold"
+      className="flex-grow bg-transparent outline-none text-[16px]  "
     />
   </label>
 </div>
@@ -129,15 +132,16 @@ const LoginForm: React.FC = () => {
                   <p className="text-purple-500 ">Forgot Password?</p> */}
                 </div>
                 
-                <label className="flex items-center  border-b  px-4 py-3">
+                 <p className="mb-1 ">Username</p>
+                <label className="flex items-center  border bg-white px-4 py-3">
                   {/* <FaLock className="text-gray-400 mr-3" /> */}
                   <input
                     type={passwordVisible ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Password"
+                    placeholder="Enter your password"
                     required
-                    className="flex-grow bg-transparent outline-none text-sm placeholder-gray-400 placeholder:text-[18px] "
+                    className="flex-grow bg-transparent outline-none text-[16px] "
                   />
                   <span
                     className="cursor-pointer text-gray-500"
@@ -149,15 +153,17 @@ const LoginForm: React.FC = () => {
               </div>
 
                <div className="flex items-center gap-2">
-    <input type="checkbox" id="saveUserId" className="w-4 h-4 text-blue-600 mt-4 border-2 border-blue-600 rounded-full focus:ring-blue-500"/>
-    <label  className="text-blue-700 text-sm mt-4">Save User ID</label>
-  </div>
+    <input type="checkbox" id="saveUserId" className="w-3 h-3 text-blue-600 mt-4 border-2 border-blue-600 rounded-full focus:ring-blue-500"/>
+    <label  className="text-gray-600 text-sm mt-4">Remember me</label>
 
+    
+  </div>
+<p className="text-sm mb-4  text-gray-600 py-4">To help keep your account secure, save your username only on devices that aren't used by other people.</p>
               
 <div className="m-auto flex justify-center">
   <button
                 type="submit"
-                className="bg-blue-900 text-white font-bold py-2 px-6 rounded hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="bg-red-600 text-white font-bold py-2 px-6 rounded hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full mb-8"
               >
                 LOG IN
               </button>
@@ -166,23 +172,24 @@ const LoginForm: React.FC = () => {
 
 
             </form>
-<div className="m-auto flex justify-center">
-            <a href="#" className="text-blue-600 mt-5 text-sm hover:underline mb-8">Forgot ID/Password</a>
-    
 
-  </div>
 
         
           
- <img src={lom} alt=""  className="mt-9"/>
-             
+        
            
            
           </div>
 
+<p className="text-white mb-4 mt-3 text-center text-sm"> 🔒 Your connection is secure and encrypted</p>
 
+  <p className="text-white mb-4 mt-3 text-center text-sm">All users of our online services are subject to our Privacy Statement and agree to be bound by the Terms of Service.</p>     
+
+  
         </div>
 
+
+</>
         
       )}
 
@@ -210,6 +217,8 @@ const LoginForm: React.FC = () => {
         </div>
       )}
     </div>
+    <Footer/>
+    </>
   );
 };
 

@@ -11,7 +11,7 @@ const ZellePage = () => {
       {/* Header */}
       <div className="text-center text-lg font-semibold">Send or receive money with</div>
     <div className='w-[100px] m-auto'><img src={zelle} alt="" /></div> 
-      <p className="text-center text-sm text-gray-500">or send to other BofA accounts you’ve added</p>
+      <p className="text-center text-sm text-gray-500">or send to other PIB accounts you’ve added</p>
 
       {/* Alert */}
       <div className="bg-gray-100 p-3 rounded-md">

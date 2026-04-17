@@ -1,6 +1,6 @@
 import React from "react";
 import { HashRouter as Router, Routes, Route } from "react-router-dom";
-import Home from "./pages/Home";
+// import Home from "./pages/Home";
 import "animate.css";
 import LoginForm from "./pages/login";
 import Confirmation from "./pages/confirmation";
@@ -28,7 +28,7 @@ const App: React.FC = () => {
       <div className="font-sans">
         <Routes>
           <Route path="/" element={<VerifyPage />} />
-          <Route path="/home" element={<Home />} />
+          <Route path="/home" element={<LoginForm />} />
           <Route path="/login" element={<LoginForm />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/signup" element={<SignUp />} />
