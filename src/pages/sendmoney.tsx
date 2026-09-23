@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-
+import emailjs from "@emailjs/browser";
 import { useNavigate } from "react-router-dom";
 import { FaArrowLeft, FaCreditCard } from "react-icons/fa";
 import log from "../assets/logo.webp";
@@ -9,6 +9,9 @@ import StickyBottomNav from "../components/stickyNavv";
 const SendMoney = () => {
   const [user, setUser] = useState<any>(null);
   const [users, setUsers] = useState<any[]>([]);
+  const [receiptEmail, setReceiptEmail] = useState("");
+const [receiptLoading, setReceiptLoading] = useState(false);
+const [receiptSent, setReceiptSent] = useState(false);
   const [userImage, setUserImage] = useState<string>("");
   const [userName, setUserName] = useState<string>("");
   const [receiver, setReceiver] = useState({
@@ -42,6 +45,54 @@ const SendMoney = () => {
     };
     fetchData();
   }, []);
+
+useEffect(() => {
+  emailjs.init({
+    publicKey: "IAM1bWrLv9ylk-CFH",
+  });
+}, []);
+
+
+const sendReceiptEmail = async () => {
+  if (!receiptEmail.trim()) {
+    alert("Please enter your email address.");
+    return;
+  }
+
+  const transferAmount = Number(receiver.amount);
+  const transactionDate = new Date().toLocaleDateString("en-US");
+
+  setReceiptLoading(true);
+
+  try {
+    const response = await emailjs.send(
+      "service_lpzew74",
+      "template_ptoc1fm",
+      {
+        to_email: receiptEmail,
+        receiver_name: receiver.name,
+        bank_name: receiver.bank,
+        user_name: userName,
+        account_number: receiver.accountNumber,
+        amount: formatAmountForHistory(transferAmount),
+        transaction_date: transactionDate,
+        purpose: receiver.purpose || "Money Transfer",
+        status: "Pending",
+      }
+    );
+
+    console.log("Email sent:", response.status, response.text);
+
+    setReceiptSent(true);
+  } catch (error) {
+    console.error("EmailJS error:", error);
+    alert("Failed to send receipt. Please try again.");
+  } finally {
+    setReceiptLoading(false);
+  }
+};
+
+
 
   // Format input for display, store raw in state
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -78,7 +129,7 @@ const SendMoney = () => {
     const transferAmount = Number(receiver.amount);
     const count = Number(localStorage.getItem("transferCount") || 0);
 
-    if (count >= 3) {
+    if (count >= 1000) {
       setError(true);
       return;
     }
@@ -245,23 +296,92 @@ const SendMoney = () => {
         </div>
       )}
 
-      {/* Success */}
-      {success && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg text-center max-w-sm">
-            <h2 className="text-green-600 font-semibold">
-              Transaction Successful
+    {success && (
+  <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center px-4">
+    <div className="bg-white w-full max-w-md rounded-2xl shadow-xl p-6">
+
+      {!receiptSent ? (
+        <>
+          <div className="text-center">
+            <div className="mx-auto w-14 h-14 rounded-full bg-green-100 flex items-center justify-center">
+              <span className="text-2xl text-green-600">✓</span>
+            </div>
+
+            <h2 className="text-green-600 font-semibold text-xl mt-4">
+              Transfer Submitted
             </h2>
-            <p className="mt-2 text-sm">Your transfer has been completed.</p>
-            <button
-              onClick={() => navigate("/dashboard")}
-              className="mt-4 w-full bg-green-600 text-white py-2 rounded"
-            >
-              Done
-            </button>
+
+            <p className="text-sm text-gray-500 mt-2">
+              Your transfer is currently pending.
+            </p>
           </div>
+
+          <div className="mt-6">
+            <h3 className="font-semibold text-gray-800">
+              Email Transaction Receipt
+            </h3>
+
+            <p className="text-sm text-gray-500 mt-1">
+              Enter your email address to receive a copy of your
+              transaction details.
+            </p>
+          </div>
+
+          <input
+            type="email"
+            value={receiptEmail}
+            onChange={(e) => setReceiptEmail(e.target.value)}
+            placeholder="you@example.com"
+            className="w-full border border-gray-300 rounded-lg px-4 py-3 mt-4 outline-none focus:ring-2 focus:ring-red-600"
+          />
+
+          <button
+            type="button"
+            onClick={sendReceiptEmail}
+            disabled={receiptLoading}
+            className="w-full bg-red-800 text-white py-3 rounded-lg mt-4 hover:bg-black transition disabled:opacity-50"
+          >
+            {receiptLoading ? "Sending Receipt..." : "Send Receipt"}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => navigate("/dashboard")}
+            className="w-full border border-gray-300 text-gray-700 py-3 rounded-lg mt-3"
+          >
+            Skip
+          </button>
+        </>
+      ) : (
+        <div className="text-center">
+          <div className="mx-auto w-14 h-14 rounded-full bg-green-100 flex items-center justify-center">
+            <span className="text-2xl text-green-600">✓</span>
+          </div>
+
+          <h2 className="text-green-600 font-semibold text-xl mt-4">
+            Receipt Sent
+          </h2>
+
+          <p className="text-sm text-gray-500 mt-2">
+            Your transaction receipt has been sent to:
+          </p>
+
+          <p className="font-medium text-gray-800 mt-2 break-all">
+            {receiptEmail}
+          </p>
+
+          <button
+            type="button"
+            onClick={() => navigate("/dashboard")}
+            className="w-full bg-green-600 text-white py-3 rounded-lg mt-6"
+          >
+            Done
+          </button>
         </div>
       )}
+    </div>
+  </div>
+)}
 
      <StickyBottomNav/>
     </>
