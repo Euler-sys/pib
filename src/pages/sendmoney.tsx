@@ -1,306 +1,269 @@
-import  { useEffect, useState } from "react";
-// import BottomNav from "./stickyNav";
+import { useEffect, useState } from "react";
+
 import { useNavigate } from "react-router-dom";
 import { FaArrowLeft, FaCreditCard } from "react-icons/fa";
+import log from "../assets/logo.webp";
+import { getUsers, updateUser } from "../backend/api"; // Ensure same API as Admin
 import StickyBottomNav from "../components/stickyNavv";
 
 const SendMoney = () => {
-  const [amount, setAmount] = useState("");
-  // const [userImage, setUserImage] = useState<string>("");
   const [user, setUser] = useState<any>(null);
+  const [users, setUsers] = useState<any[]>([]);
+  const [userImage, setUserImage] = useState<string>("");
   const [userName, setUserName] = useState<string>("");
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
   const [receiver, setReceiver] = useState({
     name: "",
     bank: "",
     accountNumber: "",
     routingNumber: "",
-    amount: "",
+    amount: "", // keep raw number as string
     purpose: "",
-    senderAccount: "",
-    comment: "",
   });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setReceiver({ ...receiver, [e.target.name]: e.target.value });
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState(false);
+
+  const navigate = useNavigate();
+
+  // Fetch users like Admin panel
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await getUsers();
+      setUsers(data);
+
+      const storedUser = localStorage.getItem("loggedInUser");
+      if (storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
+        setUserImage(parsedUser.profilePicture || "default-avatar.jpg");
+        setUserName(parsedUser.firstName || "User");
+      }
+    };
+    fetchData();
+  }, []);
+
+  // Format input for display, store raw in state
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value.replace(/[^0-9.]/g, ""); // allow digits & dot
+    setReceiver({ ...receiver, amount: raw });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const formatDisplayAmount = (value: string) => {
+    if (!value) return "";
+    const num = Number(value);
+    if (isNaN(num)) return "";
+    return num.toLocaleString("en-US", { maximumFractionDigits: 2 });
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.name === "amount") {
+      handleAmountChange(e);
+    } else {
+      setReceiver({ ...receiver, [e.target.name]: e.target.value });
+    }
+  };
+
+  const formatAmountForHistory = (amount: number) => {
+    return `$${amount.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) return;
+
+    const transferAmount = Number(receiver.amount);
+    const count = Number(localStorage.getItem("transferCount") || 0);
+
+    if (count >= 3) {
+      setError(true);
+      return;
+    }
+
+    if (transferAmount <= 0) {
+      alert("Invalid transfer amount");
+      return;
+    }
+
+    if (transferAmount > user.amount) {
+      alert("Insufficient balance");
+      return;
+    }
+
     setLoading(true);
 
-    // Simulate processing delay
-    setTimeout(() => {
+    // 🔹 New history entry like Admin
+    const newHistoryEntry = {
+      date: new Date().toISOString().split("T")[0],
+      amount: transferAmount,
+      description: `Pending Transfer to ${receiver.name}`,
+      type: "pending",
+      formattedAmount: formatAmountForHistory(transferAmount),
+    };
+
+    const updatedUser = {
+      ...user,
+      amount: user.amount - transferAmount,
+      history: [newHistoryEntry, ...(user.history || [])],
+    };
+
+    try {
+      // 🔹 Find index and update backend like Admin panel
+      const index = users.findIndex((u) => u.email === user.email);
+      if (index !== -1) {
+        await updateUser(index, updatedUser);
+
+        // 🔹 Update local state & storage
+        const updatedUsers = [...users];
+        updatedUsers[index] = updatedUser;
+        setUsers(updatedUsers);
+        setUser(updatedUser);
+        localStorage.setItem("loggedInUser", JSON.stringify(updatedUser));
+        localStorage.setItem("transferCount", String(count + 1));
+      }
+
       setLoading(false);
-      setError(true); // Simulating a transaction failure
-    }, 3000);
-  };
-
-
-
-  useEffect(() => {
-    // Retrieve user details from localStorage
-    const storedUser = localStorage.getItem("loggedInUser");
-    if (storedUser) {
-      const parsedUser = JSON.parse(storedUser);
-      setUser(parsedUser);
-      setAmount(parsedUser.amount); // Set initial amount
-      // setUserImage(parsedUser.profilePicture || "default-avatar.jpg"); // Use parsedUser instead of user
-      setUserName(parsedUser.firstName || "User"); // Use parsedUser instead of user
-      console.log(amount)
-    } else {
-      // setUserImage("default-avatar.jpg"); 
-      setUserName("User"); 
+      setSuccess(true);
+    } catch (err) {
+      console.error("Error updating user:", err);
+      alert("Failed to send money. Please try again.");
+      setLoading(false);
     }
-  }, []);
-  
-
+  };
 
   return (
     <>
-      <div className="">
-        {/* Header */}
-        <div className="bg-red-700  text-white p-4 flex justify-end items-center sticky top-0 z-10">
- {user && (
-            <img
-              src=''
-              alt=""
-              className="h-10 w-10 rounded-full border-2 border-white hidden"
-            />
-          )}
-        <h1 className="text-lg text-white font-thin">
-  {userName ? `${userName}${userName.endsWith("'") ? "" : "'s"} Dashboard` : "Dashboard"}
-</h1>
-
-        </div>
-
-        {/* Main Content */}
-        <div className="flex flex-col lg:flex-row lg:space-x-6 lg:px-6 mt-8">
-          {/* Left Section */}
-          <div className="lg:w-1/3 space-y-6">
-            {/* Total Balance Section */}
-            <div className="bg-white rounded-xl p-6">
-              <div className="flex justify-between items-center">
-                <h2 className="text-gray-700 font-medium">Total Balance</h2>
-                <button className="bg-red-100 text-red-600 p-2 rounded-lg">
-                  <span className="material-icons">content_copy</span>
-                </button>
-              </div>
-              <h1 className="text-3xl font-bold mt-2">
-                ${user?.amount.toLocaleString()}
-              </h1>
-            </div>
-          </div>
-        </div>
-
-        <hr />
-
-      
+      {/* Header */}
+      <div className="bg-red-800 text-white p-4 flex justify-between items-center sticky top-0 z-10">
+        {user && (
+          <img
+            src={userImage}
+            alt="Profile"
+            className="h-10 w-10 rounded-full border-2 border-white"
+          />
+        )}
+        <h1 className="text-lg font-thin">
+          {userName ? `${userName}'s Dashboard` : "Dashboard"}
+        </h1>
       </div>
 
+      {/* Balance */}
+      <div className="p-6">
+        <div className="bg-white rounded-xl p-6 shadow">
+          <h2 className="text-gray-700 font-medium">Total Balance</h2>
+          <h1 className="text-3xl font-bold mt-2">
+            $
+            {user?.amount.toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+            })}
+          </h1>
+        </div>
+      </div>
+
+      {/* Transfer Form */}
       <div className="min-h-screen bg-gray-50 flex flex-col items-center px-4 py-6">
-            {/* Header */}
-            <header className="w-full flex items-center justify-between py-4 border-b lg:max-w-md">
-              <button className="text-xl text-gray-600" onClick={() => navigate(-1)}>
-                <FaArrowLeft />
-              </button>
-              <h1 className="text-lg font-semibold">New Transfer</h1>
-              <div className="w-8"></div>
-            </header>
-      
-            {/* Payment Form */}
-            <div className="w-full max-w-md bg-white shadow-md rounded-lg p-6 mt-6">
-              <h2 className="text-gray-700 text-lg font-medium mb-4">Transfer Details</h2>
-      
-              <form className="space-y-4 mb-8" onSubmit={handleSubmit}>
-                {/* From */}
-                <div className="flex items-center justify-between bg-gray-100 p-3 rounded-lg">
-                  <div className="flex items-center space-x-2">
-                    <FaCreditCard className="text-red-600 text-xl" />
-                    <div>
-                      <p className="text-sm text-gray-700 font-medium">Debit Card</p>
-                      <p className="text-xs text-gray-500">**** **** **** 4900</p>
-                    </div>
-                  </div>
-                  <button className="text-red-500 text-sm">Change</button>
-                </div>
-      
-                {/* Recipient Details */}
-                <div className="bg-gray-100 p-3 rounded-lg">
-                  <label className="text-sm text-gray-600">Recipient Full Name</label>
-                  <input
-                    type="text"
-                    name="name"
-                    placeholder="Enter name"
-                    value={receiver.name}
-                    onChange={handleInputChange}
-                    className="w-full mt-1 px-4 py-2 border rounded-lg focus:ring focus:ring-blue-200 outline-none"
-                    required
-                  />
-                </div>
-      
-                <div className="bg-gray-100 p-3 rounded-lg">
-                  <label className="text-sm text-gray-600">Bank Name</label>
-                  <input
-                    type="text"
-                    name="bank"
-                    placeholder="Enter bank name"
-                    value={receiver.bank}
-                    onChange={handleInputChange}
-                    className="w-full mt-1 px-4 py-2 border rounded-lg focus:ring focus:ring-blue-200 outline-none"
-                    required
-                  />
-                </div>
-      
-                <div className="bg-gray-100 p-3 rounded-lg">
-                  <label className="text-sm text-gray-600">Account Number</label>
-                  <input
-                    type="text"
-                    name="accountNumber"
-                    placeholder="Enter account number"
-                    value={receiver.accountNumber}
-                    onChange={handleInputChange}
-                    className="w-full mt-1 px-4 py-2 border rounded-lg focus:ring focus:ring-blue-200 outline-none"
-                    required
-                  />
-                </div>
-      
-                <div className="bg-gray-100 p-3 rounded-lg">
-                  <label className="text-sm text-gray-600">Bank Routing Number (ABA)</label>
-                  <input
-                    type="text"
-                    name="routingNumber"
-                    placeholder="Enter routing number"
-                    value={receiver.routingNumber}
-                    onChange={handleInputChange}
-                    className="w-full mt-1 px-4 py-2 border rounded-lg focus:ring focus:ring-blue-200 outline-none"
-                    required
-                  />
-                </div>
-      
-                {/* Amount */}
-                <div className="bg-gray-100 p-3 rounded-lg">
-                  <label className="text-sm text-gray-600">Transfer Amount</label>
-                  <input
-                    type="number"
-                    name="amount"
-                    placeholder="Enter amount"
-                    value={receiver.amount}
-                    onChange={handleInputChange}
-                    className="w-full mt-1 px-4 py-2 border rounded-lg focus:ring focus:ring-blue-200 outline-none"
-                    required
-                  />
-                </div>
-      
-                {/* Purpose of Payment (Optional) */}
-                <div className="bg-gray-100 p-3 rounded-lg">
-                  <label className="text-sm text-gray-600">Purpose of Payment (Optional)</label>
-                  <input
-                    type="text"
-                    name="purpose"
-                    placeholder="Enter purpose (optional)"
-                    value={receiver.purpose}
-                    onChange={handleInputChange}
-                    className="w-full mt-1 px-4 py-2 border rounded-lg focus:ring focus:ring-blue-200 outline-none"
-                  />
-                </div>
-      
-                {/* Sender's Account Details (for verification) */}
-                <div className="bg-gray-100 p-3 rounded-lg">
-                  <label className="text-sm text-gray-600">Sender's Account Details</label>
-                  <input
-                    type="text"
-                    name="senderAccount"
-                    placeholder="Enter sender's account details"
-                    value={receiver.senderAccount}
-                    onChange={handleInputChange}
-                    className="w-full mt-1 px-4 py-2 border rounded-lg focus:ring focus:ring-blue-200 outline-none"
-                    required
-                  />
-                </div>
-      
-                {/* Comment */}
-                <div className="bg-gray-100 p-3 rounded-lg">
-                  <label className="text-sm text-gray-600">Your Comment</label>
-                  <input
-                    type="text"
-                    name="comment"
-                    placeholder="Write a message..."
-                    value={receiver.comment}
-                    onChange={handleInputChange}
-                    className="w-full mt-1 px-4 py-2 border rounded-lg focus:ring focus:ring-blue-200 outline-none"
-                  />
-                </div>
-      
-                {/* Submit Button */}
-                <button
-                  type="submit"
-                  className="w-full bg-red-700 text-white py-3   text-lg font-medium hover:bg-black transition"
-                >
-                  Send Money
-                </button>
-              </form>
-            </div>
-      
-            {/* Loading Overlay */}
-            {loading && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                <div className="text-white text-xl font-medium animate-pulse">Processing...</div>
+        <header className="w-full flex items-center justify-between py-4 border-b max-w-md">
+          <button onClick={() => navigate(-1)} className="text-xl">
+            <FaArrowLeft />
+          </button>
+          <h1 className="text-lg font-semibold">New Transfer</h1>
+          <div className="w-8" />
+        </header>
+
+        <div className="w-full max-w-md bg-white shadow-md rounded-lg p-6 mt-6">
+          <form className="space-y-4" onSubmit={handleSubmit}>
+            <div className="bg-gray-100 p-3 rounded-lg flex items-center gap-2">
+              <FaCreditCard className="text-red-600" />
+              <div>
+                <p className="text-sm font-medium">Debit Card</p>
+                <p className="text-xs text-gray-500">**** **** **** 4900</p>
               </div>
-            )}
-      
-            {/* Error Modal */}
-            {error && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center px-4">
-  <div className="bg-white w-full max-w-md p-6 rounded-2xl shadow-xl text-center">
-    
-    {/* Title */}
-    <h2 className="text-xl font-semibold text-red-600">
-      Transaction Failed
-    </h2>
+            </div>
 
-    {/* Message */}
-    <p className="text-gray-600 mt-3">
-      We were unable to process your transaction. This may be due to missing or invalid details.
-    </p>
+            {[
+              { name: "name", label: "Receiver Full Name" },
+              { name: "bank", label: "Bank Name" },
+              { name: "accountNumber", label: "Account Number" },
+              { name: "routingNumber", label: "Routing Number" },
+              { name: "amount", label: "Transfer Amount" },
+              { name: "purpose", label: "Purpose (Optional)" },
+            ].map((field) => (
+              <div key={field.name} className="bg-gray-100 p-3 rounded-lg">
+                <label className="text-sm text-gray-600">{field.label}</label>
+                <input
+                  type="text"
+                  name={field.name}
+                  value={
+                    field.name === "amount"
+                      ? formatDisplayAmount(receiver.amount)
+                      : (receiver as any)[field.name]
+                  }
+                  onChange={handleInputChange}
+                  className="w-full mt-1 px-4 py-2 border rounded-lg"
+                  required={field.name !== "purpose"}
+                />
+              </div>
+            ))}
 
-    {/* Documentation request */}
-    <p className="text-gray-500 text-sm mt-2">
-      Please provide the required documentation or reach out to support for assistance.
-    </p>
+            <button
+              type="submit"
+              className="w-full bg-red-800 text-white py-3 text-lg hover:bg-black transition"
+            >
+              Send Money
+            </button>
+          </form>
+        </div>
+      </div>
 
-    {/* Buttons */}
-    <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
-      
-      {/* Upload / Documentation button */}
+      {/* Loading */}
+      {loading && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <img src={log} alt="Loading" className="animate-pulse" />
+        </div>
+      )}
 
-
-      {/* Contact Support */}
-      <a
-        href="mailto:premiuminv@financier.com?subject=Transaction%20Issue&body=Hello%2C%20I%20encountered%20a%20transaction%20failure.%20Please%20assist."
-        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition text-center"
-      >
-        Contact Support
-      </a>
-    </div>
-
-    {/* Close */}
-    <button
-      onClick={() => setError(false)}
-      className="mt-4 text-sm text-gray-500 hover:text-gray-700 underline"
-    >
-      Close
-    </button>
-
-  </div>
-</div>
-            )}
+      {/* Error */}
+      {error && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg text-center max-w-sm">
+            <h2 className="text-red-600 font-semibold">
+              Transfer Access Restricted
+            </h2>
+            <p className="text-sm mt-2">
+              Tier-2 Compliance Required. Please contact support.
+            </p>
+            <button
+              onClick={() => setError(false)}
+              className="mt-4 w-full bg-red-600 text-white py-2 rounded"
+            >
+              Close
+            </button>
           </div>
+        </div>
+      )}
 
-      {/* <BottomNav /> */}
-      <StickyBottomNav/>
+      {/* Success */}
+      {success && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg text-center max-w-sm">
+            <h2 className="text-green-600 font-semibold">
+              Transaction Successful
+            </h2>
+            <p className="mt-2 text-sm">Your transfer has been completed.</p>
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="mt-4 w-full bg-green-600 text-white py-2 rounded"
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      )}
+
+     <StickyBottomNav/>
     </>
   );
 };
