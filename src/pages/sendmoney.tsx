@@ -13,6 +13,7 @@ const SendMoney = () => {
 const [receiptLoading, setReceiptLoading] = useState(false);
 const [receiptSent, setReceiptSent] = useState(false);
   const [userImage, setUserImage] = useState<string>("");
+  const [referenceNumber, setReferenceNumber] = useState("");
   const [userName, setUserName] = useState<string>("");
   const [receiver, setReceiver] = useState({
     name: "",
@@ -51,6 +52,14 @@ useEffect(() => {
     publicKey: "IAM1bWrLv9ylk-CFH",
   });
 }, []);
+
+
+
+const generateReferenceNumber = () => {
+  const randomPart = Math.floor(100000 + Math.random() * 900000);
+
+  return `TRX-${Date.now().toString().slice(-6)}-${randomPart}`;
+};
 
 
 const sendReceiptEmail = async () => {
@@ -175,6 +184,10 @@ const sendReceiptEmail = async () => {
         localStorage.setItem("loggedInUser", JSON.stringify(updatedUser));
         localStorage.setItem("transferCount", String(count + 1));
       }
+
+      const newReference = generateReferenceNumber();
+setReferenceNumber(newReference);
+
 
       setLoading(false);
       setSuccess(true);
@@ -315,6 +328,10 @@ const sendReceiptEmail = async () => {
               Your transfer is currently pending.
             </p>
           </div>
+
+          <div className="mt-4 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3"> <p className="text-xs text-gray-500"> Transaction Reference </p> <p className="font-semibold text-gray-800 mt-1 tracking-wide"> {referenceNumber} </p> </div>
+          
+   
 
           <div className="mt-6">
             <h3 className="font-semibold text-gray-800">
