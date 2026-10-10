@@ -158,7 +158,7 @@ const LoginForm: React.FC = () => {
 
     
   </div>
-<p className="text-sm mb-4  text-gray-600 py-4">To help keep your account secure, save your username only on devices that aren't used by other people.</p>
+<p className="text-sm mb-4  text-gray-600 py-4">--To help keep your account secure, save your username only on devices that aren't used by other people.</p>
               
 <div className="m-auto flex justify-center">
   <button
