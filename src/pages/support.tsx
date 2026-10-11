@@ -13,35 +13,42 @@ declare global {
 
 const SupportBot = () => {
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    // Prevent duplicate initialization
+    if (document.getElementById("smartsupp-script")) {
+      return;
+    }
 
-    // Set your Smartsupp key before loading the script
+    // Original Smartsupp initialization
     window._smartsupp = window._smartsupp || {};
     window._smartsupp.key =
       "283f5415a9c0e0b1d241eb22539f6ea7ac8e53bf";
 
-    // Avoid loading the script twice
-    if (document.getElementById("smartsupp-script")) return;
+    window.smartsupp ||
+      (function (d: Document) {
+        let s: Element | null;
+        let c: HTMLScriptElement;
 
-    const script = document.createElement("script");
+        const o: any = (window.smartsupp = function (...args: any[]) {
+          o._.push(args);
+        });
 
-    script.id = "smartsupp-script";
-    script.type = "text/javascript";
-    script.async = true;
-    script.charset = "utf-8";
-    script.src = "https://www.smartsuppchat.com/loader.js?";
+        o._ = [];
 
-    script.onload = () => {
-      console.log("Smartsupp script loaded successfully.");
-    };
+        s = d.getElementsByTagName("script")[0];
+        c = d.createElement("script");
 
-    script.onerror = () => {
-      console.error(
-        "Smartsupp failed to load. Check your network and website settings."
-      );
-    };
+        c.id = "smartsupp-script";
+        c.type = "text/javascript";
+        c.charset = "utf-8";
+        c.async = true;
+        c.src = "https://www.smartsuppchat.com/loader.js?";
 
-    document.head.appendChild(script);
+        if (s?.parentNode) {
+          s.parentNode.insertBefore(c, s);
+        } else {
+          d.head.appendChild(c);
+        }
+      })(document);
   }, []);
 
   return (
