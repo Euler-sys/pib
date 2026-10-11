@@ -1,49 +1,61 @@
 
 import { useEffect } from "react";
+import { FaEnvelope } from "react-icons/fa";
 
 declare global {
   interface Window {
-    Tawk_API: any;
-    Tawk_LoadStart: Date;
+    _smartsupp?: any;
+    smartsupp?: any;
   }
 }
 
-const LiveSupport = () => {
+const SupportBot = () => {
   useEffect(() => {
-    // Prevent Tawk from loading multiple times
-    if (document.getElementById("tawk-script")) {
-      return;
-    }
+    if (typeof window === "undefined") return;
 
-    // Tawk global variables
-    window.Tawk_API = window.Tawk_API || {};
-    window.Tawk_LoadStart = new Date();
+    // Prevent loading twice
+    if (document.getElementById("smartsupp-script")) return;
 
-    // Create Tawk script
+    window._smartsupp = window._smartsupp || {};
+
+    // Your new Smartsupp key
+    window._smartsupp.key =
+      "283f5415a9c0e0b1d241eb22539f6ea7ac8e53bf";
+
     const script = document.createElement("script");
-
-    script.id = "tawk-script";
+    script.id = "smartsupp-script";
+    script.type = "text/javascript";
     script.async = true;
-    script.src =
-      "https://embed.tawk.to/6ac7735b35f62834c6617b7e/1k4dhl81g";
+    script.charset = "utf-8";
+    script.src = "https://www.smartsuppchat.com/loader.js?";
 
-    script.charset = "UTF-8";
-    script.setAttribute("crossorigin", "*");
+    const firstScript = document.getElementsByTagName("script")[0];
 
-    // Add Tawk to the page
-    document.body.appendChild(script);
-
-    // Cleanup
-    return () => {
-      const existingScript = document.getElementById("tawk-script");
-
-      if (existingScript) {
-        existingScript.remove();
-      }
-    };
+    if (firstScript?.parentNode) {
+      firstScript.parentNode.insertBefore(script, firstScript);
+    } else {
+      document.head.appendChild(script);
+    }
   }, []);
 
-  return null;
+  return (
+    <div className="fixed bottom-[100px] left-5 z-[9999] flex flex-col items-center space-y-1">
+      <button
+        onClick={() =>
+          (window.location.href =
+            "mailto:premiuminv@financier.com")
+        }
+        aria-label="Email Support"
+        className="p-3 rounded-full shadow-lg bg-red-800 hover:bg-red-700 text-white transition"
+      >
+        <FaEnvelope size={18} />
+      </button>
+
+      <span className="text-sm text-black font-bold">
+        Email Us
+      </span>
+    </div>
+  );
 };
 
-export default LiveSupport;
+export default SupportBot;
