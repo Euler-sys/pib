@@ -19,7 +19,7 @@ const SupportBot = () => {
     const script = document.createElement("script");
     script.id = "tidio-script";
     script.async = true;
-    script.src = "https://code.tidio.co/7w8m6w1earqbu4cjslnw4whccxxehajr.js";
+    script.src = "https://code.tidio.co/8hnavpibnbvpvbi2q0psopgubjkeym29.js";
     script.charset = "UTF-8";
 
     document.body.appendChild(script);
